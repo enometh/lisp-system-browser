@@ -17,6 +17,10 @@
 (require :swank)
 (require :closer-mop)
 
+;; other packages are handled by sly-retro
+(cl-user:package-add-nicknames :slynk-backend :swank/backend)
+(cl-user:package-add-nicknames :slynk-ccl :swank/ccl)
+
 (defpackage :def-properties
   (:use :cl)
   (:export
@@ -577,13 +581,19 @@ PACKAGE: the package to use to read the docstring symbols.
 
 ;; This function finds the packages defined from an ASDF, approximatly. And it is very slow.
 (defun asdf-system-packages (system)
+  #+asdf
   (when (not (asdf:component-loaded-p system))
     (return-from asdf-system-packages nil))
   (let* ((asdf-system (if (or (symbolp system)
                               (stringp system))
-                          (asdf:find-system system)
+                          (#+mk-defsystem
+			   mk:find-system
+			   #+asdf
+			   asdf:find-system system)
                           system))
-         (system-source-directory (asdf:system-source-directory asdf-system)))
+         (system-source-directory
+	  #+mk-defsystem (mk::system-relative-pathname asdf-system #p"")
+	  #+asdf (asdf:system-source-directory asdf-system)))
     (loop for package in (list-all-packages)
           for location := (package-source-location package)
           when (and (eql (car location) :location)
