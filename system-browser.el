@@ -46,10 +46,10 @@
   nil)
 
 (defun esb:list-all-cl-packages ()
-  (slime-eval '(cl:sort (cl:mapcar 'cl:package-name (cl:list-all-packages)) 'cl:string<)))
+  (sly-eval '(cl:sort (cl:mapcar 'cl:package-name (cl:list-all-packages)) 'cl:string<)))
 
 (defun esb:asdf-system-packages (system-name &optional include-direct-dependencies)
-  (slime-eval `(esb:asdf-system-packages ,system-name ,include-direct-dependencies)))
+  (sly-eval `(esb:asdf-system-packages ,system-name ,include-direct-dependencies)))
 
 (defmethod esb:list-packages ((system esb:common-lisp-system))
   (if (esb:packages-list-function system)
@@ -271,7 +271,7 @@ The second argument indicates if include system's direct dependencies or not."
         (newline))
       (setq buffer-read-only t))
 
-    (let* ((package-properties (slime-eval `(esb::serialize-for-emacs (def-properties:package-properties ,package t))))
+    (let* ((package-properties (sly-eval `(esb::serialize-for-emacs (def-properties:package-properties ,package t))))
            (source (find :source package-properties :key 'car))
            (file (and source
                       (or (cadr (find :file (remove-if-not 'listp source) :key 'car))
@@ -381,7 +381,7 @@ The second argument indicates if include system's direct dependencies or not."
            ((string= category "generic functions") 'def-properties:generic-function-properties)
            (t (error "Invalid category: %s" category))
            )))
-    (let* ((definition-properties (slime-eval `(esb:serialize-for-emacs (,definition-function (cl:intern ,definition ,package) t))))
+    (let* ((definition-properties (sly-eval `(esb:serialize-for-emacs (,definition-function (cl:intern ,definition ,package) t))))
            (source (find :source definition-properties :key 'car))
            (file (and source (or
                               (cadr (find :file (remove-if-not 'listp source) :key 'car))
@@ -420,7 +420,7 @@ The second argument indicates if include system's direct dependencies or not."
            ((string= category "macros") 'def-properties:macro-properties)
            ((string= category "classes") 'def-properties:class-properties)
            ((string= category "generic functions") 'def-properties:generic-function-properties))))
-    (let* ((definition-properties (slime-eval `(esb::serialize-for-emacs (,definition-function (cl:intern ,definition ,package) t))))
+    (let* ((definition-properties (sly-eval `(esb::serialize-for-emacs (,definition-function (cl:intern ,definition ,package) t))))
            (documentation (cdr (assoc :documentation definition-properties)))
            (contents (or documentation "This definition is not documented.")))
       (when (eql definition-type :variable)
@@ -444,7 +444,7 @@ The second argument indicates if include system's direct dependencies or not."
            ((string= category "classes") :class)
            ((string= category "generic functions") :generic-function))))
 
-    (slime-eval `(esb:list-definitions ,package ,definition-type :include-internal-p ,esb:list-internal-definitions))))
+    (sly-eval `(esb:list-definitions ,package ,definition-type :include-internal-p ,esb:list-internal-definitions))))
 
 ;;---- Window management ---------------------------
 
@@ -507,11 +507,11 @@ The second argument indicates if include system's direct dependencies or not."
   (block system-browser
 
     ;; Start SLIME if needed
-    (when (not (slime-connected-p))
+    (when (not (sly-connected-p))
       (when (or esb:start-slime-automatically
                 (yes-or-no-p "SLIME is not connected. Start? "))
-        (add-hook 'slime-connected-hook 'system-browser t)
-        (slime))
+        (add-hook 'sly-connected-hook 'system-browser t)
+        (sly))
       (return-from system-browser))
 
     (esb:system-browser-initialize)
@@ -547,7 +547,7 @@ The second argument indicates if include system's direct dependencies or not."
 
 (defun system-browser-browse-package (package-name)
   "Browse a particular package completed from command bar."
-  (interactive (list (slime-read-package-name "Browse package: ")))
+  (interactive (list (sly-read-package-name "Browse package: ")))
   (esb:select-package package-name))
 
 (defun system-browser-browse-definition (definition-name)
@@ -846,12 +846,12 @@ The second argument indicates if include system's direct dependencies or not."
 
 ;;------ SLIME --------------------------------------------
 
-(define-slime-contrib system-browser
+(define-sly-contrib system-browser
   "Smalltalk-like system browser for Common Lisp"
   (:authors "Mariano Montone")
   (:license "GPL")
-  (:slime-dependencies slime-asdf)
-  (:swank-dependencies emacs-system-browser))
+  (:slime-dependencies sly-mk-defsystem)
+  (:swank-dependencies emacs-system-browser)))
 
 (provide 'system-browser)
 
